@@ -17,7 +17,7 @@
 # *                                                                                                                                     *                                                                                                              *
 # *     1)  MySQL Server -  2 Source Nodes - Source-Source or Primary-Primary or Master-Master                                          *
 # *                                                                                                                                     *
-# *     2)  MySQL Server  - 1 Replica  Node                                                                                           *
+# *     2)  MySQL Server  - 1 Replica  Node                                                                                             *
 # *                                                                                                                                     *
 # *     3)  GTID  Replication Mode Option Enabled                                                                                       *
 # *                                                                                                                                     *
@@ -39,7 +39,6 @@ services:
     environment:
       - REPLPASSWORD=${REPLPASSWORD}
       - DATADIR=${DATADIR}
-      - FILENAME=${FILENAME}
     command: >
       bash -c "sudo usermod -d /var/lib/mysql/ mysql
       && sudo chmod 750 /etc/mysql
