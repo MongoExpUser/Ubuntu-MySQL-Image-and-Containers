@@ -77,6 +77,7 @@
      sudo docker exec -it primary-node-2 /bin/bash -c "sudo mysql --execute 'SHOW VARIABLES\G;'"
      sudo docker exec -it replica-node-3 /bin/bash -c "sudo mysql --execute 'SHOW VARIABLES\G;'"
 
+
 # License
 
 Copyright © 2024. MongoExpUser
