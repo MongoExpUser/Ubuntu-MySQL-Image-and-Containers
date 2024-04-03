@@ -1,0 +1,373 @@
+# ***************************************************************************************************************************************
+# * docker-compose-mysql.yml                                                                                                            *
+#  **************************************************************************************************************************************
+#  *                                                                                                                                    *
+#  * @License Starts                                                                                                                    *
+#  *                                                                                                                                    *
+#  * Copyright © 2024. MongoExpUser.  All Rights Reserved.                                                                              *
+#  *                                                                                                                                    *
+#  * License: MIT - https://github.com/MongoExpUser/Ubuntu-MySQL-Server-Image-and-Container/blob/main/LICENSE                           *
+#  *                                                                                                                                    *
+#  * @License Ends                                                                                                                      *
+#  **************************************************************************************************************************************
+# *                                                                                                                                     *
+# *  Project: Ubuntu-MySQL Image & Container Project                                                                                    *
+# *                                                                                                                                     *
+# *  This docker compose file deploys MySQL Source-Source-Replica Setup as follow:                                                      *
+# *                                                                                                                                     *                                                                                                              *
+# *     1)  MySQL Server -  2 Source Nodes - Source-Source or Primary-Primary or Master-Master                                          *
+# *                                                                                                                                     *
+# *     2)  MariaDB Server  - 1 Replica  Node                                                                                           *
+# *                                                                                                                                     *
+# *     3)  GTID  Replication Mode Option Enabled                                                                                       *
+# *                                                                                                                                     *
+# *  Version: MySQL Version 8.0.36                                                                                                      *
+# *                                                                                                                                     *
+# *  Images name: lsa/ubuntu-22.04-mysql-8.0.36:latest .                                                                                *
+# *                                                                                                                                     *
+# *  Purpose: Datastore for a Listing-and-Search (LSA) Application                                                                      *
+# *                                                                                                                                     *
+# *  Both primary (source) nodes can be used for write and read operations.                                                             *
+# *  If the main primary (source-1/primary-1) nodes goes down, the 2nd primary can continue to serve as a primary.                      *
+# ***************************************************************************************************************************************
+
+
+version: "3.9"
+services:
+  primary-node-1:
+    image: lsa/ubuntu-22.04-mysql-8.0.36:latest
+    environment:
+      - REPLPASSWORD=${REPLPASSWORD}
+      - DATADIR=${DATADIR}
+      - FILENAME=${FILENAME}
+    command: >
+      bash -c "sudo usermod -d /var/lib/mysql/ mysql
+      && sudo chmod 750 /etc/mysql
+      && sudo chmod 750 /var/lib/mysql
+      && sudo chmod 750 /var/log/mysql
+      && sudo chown mysql /var/lib/mysql
+      && sudo chown -R mysql:mysql /etc/mysql/
+      && sudo chown -R mysql:mysql /var/lib/mysql
+      && sudo chown -R mysql:mysql /var/log/mysql
+      && sudo chmod 750 /var/log/mysql
+      && sudo rm -rf /etc/mysql/my.cnf
+      && echo ' ' >> /etc/mysql/my.cnf
+      && sudo chmod 750 /etc/mysql/my.cnf
+      && echo '[mysqld]' >> /etc/mysql/my.cnf
+      && echo 'bind-address=*' >> /etc/mysql/my.cnf
+      && echo 'port=3306' >> /etc/mysql/my.cnf
+      && echo 'character-set-server=utf8mb4' >> /etc/mysql/my.cnf
+      && echo 'collation-server=utf8mb4_unicode_ci' >> /etc/mysql/my.cnf
+      && echo 'default-time-zone='+00:00'' >> /etc/mysql/my.cnf
+      && echo 'default-authentication-plugin=mysql_native_password' >> /etc/mysql/my.cnf
+      && echo 'server-id=1' >> /etc/mysql/my.cnf
+      && echo 'datadir=/var/lib/mysql' >> /etc/mysql/my.cnf
+      && echo 'binlog-format=ROW' >> /etc/mysql/my.cnf
+      && echo 'binlog-expire-logs-seconds=864000' >> /etc/mysql/my.cnf
+      && echo 'log-bin=mysql-bin' >> /etc/mysql/my.cnf
+      && echo 'sync-binlog=1' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=sys' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=mysql' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=information_schema' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=performance_schema' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=sys' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=mysql' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=information_schema' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=performance_schema' >> /etc/mysql/my.cnf
+      && echo 'gtid_mode=ON' >> /etc/mysql/my.cnf
+      && echo 'enforce_gtid_consistency=ON' >> /etc/mysql/my.cnf
+      && echo 'super_read_only=OFF' >> /etc/mysql/my.cnf
+      && echo 'log-slave-updates=1' >> /etc/mysql/my.cnf
+      && echo 'auto-increment-increment=2' >> /etc/mysql/my.cnf
+      && echo 'auto-increment-offset=1' >> /etc/mysql/my.cnf
+      && echo ' ' >> /etc/mysql/my.cnf
+      && echo '[client]' >> /etc/mysql/my.cnf
+      && echo '#protocol=tcp' >> /etc/mysql/my.cnf
+      && echo ' ' >> /etc/mysql/my.cnf
+      && echo '[mysqldump]' >> /etc/mysql/my.cnf
+      && echo 'quick' >> /etc/mysql/my.cnf
+      && echo 'quote-names' >> /etc/mysql/my.cnf
+      && echo 'max_allowed_packet=200M' >> /etc/mysql/my.cnf
+      && sudo chmod 750 /etc/mysql/my.cnf
+      && sudo chown -R mysql /etc/mysql/
+      && sudo service mysql start
+      && sudo sleep 5
+      && sudo mysql --execute \"use mysql; DROP USER IF EXISTS 'replicator'@'%'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; CREATE USER 'replicator'@'%' IDENTIFIED BY '${REPLPASSWORD}'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; GRANT ALL PRIVILEGES ON *.* TO 'replicator'@'%'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; DROP USER IF EXISTS 'replicator'@'localhost'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; CREATE USER 'replicator'@'localhost' IDENTIFIED BY '${REPLPASSWORD}'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; GRANT ALL PRIVILEGES ON *.* TO 'replicator'@'localhost'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"USE mysql; UPDATE user SET plugin='mysql_native_password' WHERE user='replicator'; \"
+      && sudo mysql --execute \"USE mysql; UPDATE user SET plugin='mysql_native_password' WHERE user='root'; \"
+      && sudo mysql --execute \"USE mysql; ALTER USER 'replicator'@'%' IDENTIFIED WITH mysql_native_password BY '${REPLPASSWORD}'; \"
+      && sudo mysql --execute \"USE mysql; ALTER USER 'replicator'@'localhost' IDENTIFIED WITH mysql_native_password BY '${REPLPASSWORD}'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SELECT user, host, plugin, authentication_string, password_expired FROM mysql.user; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW DATABASES; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE 'read_only'; SHOW VARIABLES LIKE 'super_read_only'; SHOW VARIABLES LIKE 'log_bin'; SHOW VARIABLES LIKE 'time_zone'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE 'datadir'; SHOW VARIABLES LIKE 'sql_mode';  SHOW VARIABLES LIKE 'binlog_format';  SHOW VARIABLES LIKE '%bin%'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE '%gtid%'; SHOW VARIABLES LIKE '%server%'; SHOW VARIABLES LIKE '%_expire_%';  SHOW VARIABLES LIKE '%_increment_%'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE 'replicate_ignore_db'; SHOW VARIABLES LIKE 'binlog_ignore_db'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE '%pos'; \"
+      && sudo sleep 5
+      && sudo mysql --execute \"use mysql; SELECT VERSION(); \"
+      && sudo sleep 50
+      && sudo mysql --execute \"use mysql; CHANGE REPLICATION SOURCE TO  SOURCE_HOST='host.docker.internal', SOURCE_PORT=3302, SOURCE_USER='replicator', SOURCE_PASSWORD='${REPLPASSWORD}', SOURCE_AUTO_POSITION=1; FLUSH PRIVILEGES; START REPLICA; SHOW MASTER STATUS; SHOW SLAVE HOSTS; SHOW REPLICA STATUS;  \"
+      && sudo tail -f /dev/null
+      "
+    container_name: primary-node-1
+    restart: always
+    volumes:
+      - data_pid1:/var/lib/mysql
+      - logs1:/var/log/mysql
+    ports:
+      -  3301:3306
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    healthcheck:
+      test: ["CMD-SHELL", "sudo mysql --execute \"SHOW DATABASES;\""]
+      interval: 6s
+      timeout: 3s
+      retries: 3
+  primary-node-2:
+    depends_on:
+      - primary-node-1
+    image: lsa/ubuntu-22.04-mysql-8.0.36:latest
+    environment:
+      - REPLPASSWORD=${REPLPASSWORD}
+      - DATADIR=${DATADIR}
+    command: >
+      bash -c "sudo usermod -d /var/lib/mysql/ mysql
+      && sudo chmod 750 /etc/mysql
+      && sudo chmod 750 /var/lib/mysql
+      && sudo chmod 750 /var/log/mysql
+      && sudo chown mysql /var/lib/mysql
+      && sudo chown -R mysql:mysql /etc/mysql/
+      && sudo chown -R mysql:mysql /var/lib/mysql
+      && sudo chown -R mysql:mysql /var/log/mysql
+      && sudo chmod 750 /var/log/mysql
+      && sudo rm -rf /etc/mysql/my.cnf
+      && echo ' ' >> /etc/mysql/my.cnf
+      && sudo chmod 750 /etc/mysql/my.cnf
+      && echo '[mysqld]' >> /etc/mysql/my.cnf
+      && echo 'bind-address=*' >> /etc/mysql/my.cnf
+      && echo 'port=3306' >> /etc/mysql/my.cnf
+      && echo 'character-set-server=utf8mb4' >> /etc/mysql/my.cnf
+      && echo 'collation-server=utf8mb4_0900_ai_ci' >> /etc/mysql/my.cnf
+      && echo 'default-time-zone='+00:00'' >> /etc/mysql/my.cnf
+      && echo 'default-authentication-plugin=mysql_native_password' >> /etc/mysql/my.cnf
+      && echo 'server-id=2' >> /etc/mysql/my.cnf
+      && echo 'datadir=/var/lib/mysql' >> /etc/mysql/my.cnf
+      && echo 'binlog-format=ROW' >> /etc/mysql/my.cnf
+      && echo 'binlog-expire-logs_seconds=864000' >> /etc/mysql/my.cnf
+      && echo 'log-bin=mysql-bin' >> /etc/mysql/my.cnf
+      && echo 'sync-binlog=1' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=sys' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=mysql' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=information_schema' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=performance_schema' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=sys' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=mysql' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=information_schema' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=performance_schema' >> /etc/mysql/my.cnf
+      && echo 'gtid_mode=ON' >> /etc/mysql/my.cnf
+      && echo 'enforce_gtid_consistency=ON' >> /etc/mysql/my.cnf
+      && echo 'super_read_only=OFF' >> /etc/mysql/my.cnf
+      && echo 'log-slave-updates=1' >> /etc/mysql/my.cnf
+      && echo 'auto-increment-increment=2' >> /etc/mysql/my.cnf
+      && echo 'auto-increment-offset=2' >> /etc/mysql/my.cnf
+      && echo ' ' >> /etc/mysql/my.cnf
+      && echo '[client]' >> /etc/mysql/my.cnf
+      && echo '#protocol=tcp' >> /etc/mysql/my.cnf
+      && echo ' ' >> /etc/mysql/my.cnf
+      && echo '[mysqldump]' >> /etc/mysql/my.cnf
+      && echo 'quick' >> /etc/mysql/my.cnf
+      && echo 'quote-names' >> /etc/mysql/my.cnf
+      && echo 'max_allowed_packet=200M' >> /etc/mysql/my.cnf
+      && sudo chmod 750 /etc/mysql/my.cnf
+      && sudo chown -R mysql:mysql /etc/mysql/
+      && sudo service mysql start
+      && sudo sleep 5
+      && sudo mysql --execute \"use mysql; DROP USER IF EXISTS 'replicator'@'%'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; CREATE USER 'replicator'@'%' IDENTIFIED BY '${REPLPASSWORD}'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; GRANT ALL PRIVILEGES ON *.* TO 'replicator'@'%'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; DROP USER IF EXISTS 'replicator'@'localhost'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; CREATE USER 'replicator'@'localhost' IDENTIFIED BY '${REPLPASSWORD}'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; GRANT ALL PRIVILEGES ON *.* TO 'replicator'@'localhost'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"USE mysql; UPDATE user SET plugin='mysql_native_password' WHERE user='replicator'; \"
+      && sudo mysql --execute \"USE mysql; UPDATE user SET plugin='mysql_native_password' WHERE user='root'; \"
+      && sudo mysql --execute \"USE mysql; ALTER USER 'replicator'@'%' IDENTIFIED WITH mysql_native_password BY '${REPLPASSWORD}'; \"
+      && sudo mysql --execute \"USE mysql; ALTER USER 'replicator'@'localhost' IDENTIFIED WITH mysql_native_password BY '${REPLPASSWORD}'; \" 
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SELECT user, host, plugin, authentication_string, password_expired FROM mysql.user; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW DATABASES; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE 'read_only'; SHOW VARIABLES LIKE 'super_read_only'; SHOW VARIABLES LIKE 'log_bin'; SHOW VARIABLES LIKE 'time_zone'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE 'datadir'; SHOW VARIABLES LIKE 'sql_mode';  SHOW VARIABLES LIKE 'binlog_format';  SHOW VARIABLES LIKE '%bin%'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE '%gtid%'; SHOW VARIABLES LIKE '%server%'; SHOW VARIABLES LIKE '%_expire_%';  SHOW VARIABLES LIKE '%_increment_%'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE 'replicate_ignore_db'; SHOW VARIABLES LIKE 'binlog_ignore_db'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE '%pos'; \"
+      && sudo rm -rf /var/lib/mysql/auto.cnf
+      && sudo service mysql restart
+      && sudo sleep 15
+      && sudo mysql --execute \"use mysql; CHANGE REPLICATION SOURCE TO  SOURCE_HOST='host.docker.internal', SOURCE_PORT=3301, SOURCE_USER='replicator', SOURCE_PASSWORD='${REPLPASSWORD}', SOURCE_AUTO_POSITION=1; FLUSH PRIVILEGES; START REPLICA; SHOW MASTER STATUS; SHOW SLAVE HOSTS; SHOW REPLICA STATUS;  \"  
+      && sudo mysql --execute \"use mysql; SELECT VERSION(); \"
+      && sudo tail -f /dev/null
+      "
+    container_name: primary-node-2
+    restart: always
+    volumes:
+      - data_pid2:/var/lib/mysql
+      - logs2:/var/log/mysql
+    ports:
+      -  3302:3306
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    healthcheck:      
+      test: ["CMD-SHELL", "sudo mysql --execute \"SHOW DATABASES;\""]
+      interval: 6s
+      timeout: 3s
+      retries: 3
+  replica-node-3:
+    depends_on:
+      - primary-node-1
+      - primary-node-2
+    image: lsa/ubuntu-22.04-mysql-8.0.36:latest
+    environment:
+      - REPLPASSWORD=${REPLPASSWORD}
+      - DATADIR=${DATADIR}
+    command: >
+      bash -c "sudo usermod -d /var/lib/mysql/ mysql
+      && sudo chmod 750 /etc/mysql
+      && sudo chmod 750 /var/lib/mysql
+      && sudo chmod 750 /var/log/mysql
+      && sudo chown mysql /var/lib/mysql
+      && sudo chown -R mysql:mysql /etc/mysql/
+      && sudo chown -R mysql:mysql /var/lib/mysql
+      && sudo chown -R mysql:mysql /var/log/mysql
+      && sudo chmod 750 /var/log/mysql
+      && sudo rm -rf /etc/mysql/my.cnf
+      && echo ' ' >> /etc/mysql/my.cnf
+      && sudo chmod 750 /etc/mysql/my.cnf
+      && echo ' ' >> /etc/mysql/my.cnf
+      && echo '[client]' >> /etc/mysql/my.cnf
+      && echo '#protocol=tcp' >> /etc/mysql/my.cnf
+      && echo ' ' >> /etc/mysql/my.cnf
+      && echo '[mysqldump]' >> /etc/mysql/my.cnf
+      && echo 'quick' >> /etc/mysql/my.cnf
+      && echo 'quote-names' >> /etc/mysql/my.cnf
+      && echo 'max_allowed_packet=200M' >> /etc/mysql/my.cnf
+      && echo ' ' >> /etc/mysql/my.cnf
+      && echo '[mysqld]' >> /etc/mysql/my.cnf
+      && echo 'bind-address=*' >> /etc/mysql/my.cnf
+      && echo 'port=3306' >> /etc/mysql/my.cnf
+      && echo 'character-set-server=utf8mb4' >> /etc/mysql/my.cnf
+      && echo 'collation-server=utf8mb4_0900_ai_ci' >> /etc/mysql/my.cnf
+      && echo 'default-time-zone='+00:00'' >> /etc/mysql/my.cnf
+      && echo 'default-authentication-plugin=mysql_native_password' >> /etc/mysql/my.cnf
+      && echo 'server-id=3' >> /etc/mysql/my.cnf
+      && echo 'datadir=/var/lib/mysql' >> /etc/mysql/my.cnf
+      && echo 'binlog-format=ROW' >> /etc/mysql/my.cnf
+      && echo 'binlog-expire-logs_seconds=864000' >> /etc/mysql/my.cnf
+      && echo 'log-bin=mysql-bin' >> /etc/mysql/my.cnf
+      && echo 'sync-binlog=1' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=sys' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=mysql' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=information_schema' >> /etc/mysql/my.cnf
+      && echo 'binlog-ignore-db=performance_schema' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=sys' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=mysql' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=information_schema' >> /etc/mysql/my.cnf
+      && echo 'replicate-ignore-db=performance_schema' >> /etc/mysql/my.cnf
+      && echo 'gtid_mode=ON' >> /etc/mysql/my.cnf
+      && echo 'enforce_gtid_consistency=ON' >> /etc/mysql/my.cnf
+      && echo '#super_read_only=OFF' >> /etc/mysql/my.cnf
+      && echo 'log-slave-updates=1' >> /etc/mysql/my.cnf
+      && echo '#auto-increment-increment=2' >> /etc/mysql/my.cnf
+      && echo '#auto-increment-offset=2' >> /etc/mysql/my.cnf
+      && sudo chmod 750 /etc/mysql/my.cnf
+      && sudo chown -R mysql:mysql /etc/mysql/
+      && sudo service mysql start
+      && sudo sleep 5
+      && sudo mysql --execute \"use mysql; DROP USER IF EXISTS 'replicator'@'%'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; CREATE USER 'replicator'@'%' IDENTIFIED BY '${REPLPASSWORD}'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; GRANT ALL PRIVILEGES ON *.* TO 'replicator'@'%'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; DROP USER IF EXISTS 'replicator'@'localhost'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; CREATE USER 'replicator'@'localhost' IDENTIFIED BY '${REPLPASSWORD}'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"use mysql; GRANT ALL PRIVILEGES ON *.* TO 'replicator'@'localhost'; FLUSH PRIVILEGES; \"
+      && sudo mysql --execute \"USE mysql; UPDATE user SET plugin='mysql_native_password' WHERE user='replicator'; \"
+      && sudo mysql --execute \"USE mysql; UPDATE user SET plugin='mysql_native_password' WHERE user='root'; \"
+      && sudo mysql --execute \"USE mysql; ALTER USER 'replicator'@'%' IDENTIFIED WITH mysql_native_password BY '${REPLPASSWORD}'; \"
+      && sudo mysql --execute \"USE mysql; ALTER USER 'replicator'@'localhost' IDENTIFIED WITH mysql_native_password BY '${REPLPASSWORD}'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SELECT user, host, plugin, authentication_string, password_expired FROM mysql.user; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW DATABASES; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE 'read_only'; SHOW VARIABLES LIKE 'super_read_only'; SHOW VARIABLES LIKE 'log_bin'; SHOW VARIABLES LIKE 'time_zone'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE 'datadir'; SHOW VARIABLES LIKE 'sql_mode';  SHOW VARIABLES LIKE 'binlog_format';  SHOW VARIABLES LIKE '%bin%'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE '%gtid%'; SHOW VARIABLES LIKE '%server%'; SHOW VARIABLES LIKE '%_expire_%';  SHOW VARIABLES LIKE '%_increment_%'; \"
+      && sudo mysql --execute \"use mysql; SELECT '---------'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE 'replicate_ignore_db'; SHOW VARIABLES LIKE 'binlog_ignore_db'; \"
+      && sudo mysql --execute \"use mysql; SHOW VARIABLES LIKE '%pos'; \"
+      && sudo rm -rf /var/lib/mysql/auto.cnf
+      && sudo service mysql restart
+      && sudo sleep 70
+      && sudo mysql --execute \"use mysql; CHANGE REPLICATION SOURCE TO  SOURCE_HOST='host.docker.internal', SOURCE_PORT=3302, SOURCE_USER='replicator', SOURCE_PASSWORD='${REPLPASSWORD}', SOURCE_AUTO_POSITION=1; FLUSH PRIVILEGES; START REPLICA; SHOW MASTER STATUS; SHOW SLAVE HOSTS; SHOW REPLICA STATUS;  \"
+      && sudo mysql --execute \"use mysql; SELECT VERSION(); \"
+      && sudo mysql --execute \"use mysql; SET GLOBAL super_read_only=ON; \"
+      && echo 'super_read_only=ON' >> /etc/mysql/my.cnf
+      && sudo tail -f /dev/null
+      "
+    container_name: replica-node-3
+    restart: always
+    volumes:
+      - data_pid3:/var/lib/mysql
+      - logs3:/var/log/mysql
+    ports:
+      -  3303:3306
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    healthcheck:
+      test: ["CMD-SHELL", "sudo mysql --execute \"SHOW DATABASES;\""]
+      interval: 6s
+      timeout: 3s
+      retries: 3
+  app-node-4:
+    image: lsa/ubuntu-22.04-mysql-8.0.36:latest
+    environment:
+      - REPLPASSWORD=${REPLPASSWORD}
+      - DATADIR=${DATADIR}
+    command: bash -c "sudo node /home/base/app.js && sudo tail -f /dev/null"
+    container_name: app-node-4
+    restart: always
+    volumes:
+      - ./app/app.js:/home/base/app.js
+    ports:
+      -  8080:80
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    healthcheck:
+      test: ["CMD-SHELL", "sudo ls -lhs /home/base/"]
+      interval: 6s
+      timeout: 3s
+      retries: 3
+volumes:
+  data_pid1:
+  logs1:
+  data_pid2:
+  logs2:
+  data_pid3:
+  logs3:
