@@ -21,7 +21,7 @@
 # *                                                                                                                                     *
 # *     3)  A NodeJS Webserver Node                                                                                                     *
 # *                                                                                                                                     *
-# *  Version: MySQL Version v8.0.36 and Node v21                                                                                        *
+# *  Version: MySQL Version v8.0.36 and NodeJS v21                                                                                      *
 # *                                                                                                                                     *
 # *  Images name: lsa/ubuntu-22.04-mysql-8.0.36:latest                                                                                  *
 # *                                                                                                                                     *
