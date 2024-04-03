@@ -350,24 +350,16 @@ services:
     environment:
       - REPLPASSWORD=${REPLPASSWORD}
       - DATADIR=${DATADIR}
-    command: bash -c "sudo node /home/base/app.js && sudo tail -f /dev/null"
+    command: bash -c "sudo node --inspect=9250 --trace-warnings --trace-deprecation --watch /home/base/app.js"
     container_name: app-node-4
     restart: always
     volumes:
-      - ./app/app.js:/home/base/app.js
+      - ./app:/home/base
     ports:
-      -  8080:80
+      -  80:80
     extra_hosts:
       - host.docker.internal:host-gateway
     healthcheck:
-      test: ["CMD-SHELL", "sudo ls -lhs /home/base/"]
+      test: ["CMD-SHELL", "sudo ls -lhs /home/base && sudo curl http://localhost"]
       interval: 6s
-      timeout: 3s
-      retries: 3
-volumes:
-  data_pid1:
-  logs1:
-  data_pid2:
-  logs2:
-  data_pid3:
-  logs3:
+ 
