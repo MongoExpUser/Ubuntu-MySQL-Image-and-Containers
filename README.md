@@ -2,7 +2,7 @@
 # Ubuntu-MySQL-Image-and-Containers
 ## MySQL Primary-Primary-Replica Setup
 
-<strong> Create Image and Deploy Containers of MySQL Servers (2 Primary and 1 Replica1) for a Listing and Searching Application (LSA) .</strong>
+<strong> Create Image and Deploy Containers of MySQL Servers (2 Primary and 1 Replica) for a Listing and Searching Application (LSA) .</strong>
 <br>
 
 ### Architectural Diagram Depicting MySQL Primary-Primary and Replica Setup.
