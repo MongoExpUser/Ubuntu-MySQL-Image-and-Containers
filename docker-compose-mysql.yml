@@ -17,7 +17,7 @@
 # *                                                                                                                                     *                                                                                                              *
 # *     1)  MySQL Server -  2 Source Nodes - Source-Source or Primary-Primary or Master-Master                                          *
 # *                                                                                                                                     *
-# *     2)  MariaDB Server  - 1 Replica  Node                                                                                           *
+# *     2)  MySQL Server  - 1 Replica  Node                                                                                           *
 # *                                                                                                                                     *
 # *     3)  GTID  Replication Mode Option Enabled                                                                                       *
 # *                                                                                                                                     *
