@@ -9,7 +9,7 @@
 ![Image description](https://github.com/MongoExpUser/Ubuntu-MySQL-Image-and-Containers/blob/main/mysql-arch.png)
 
      *  Both primary (source) nodes can be used for write and read operations.                                      
-     *  If the main primary (source-1/primary-1) nodes goes down, the 2nd primary can continue to serve as a primary.                     
+     *  If the main primary (source-1/primary-1) node goes down, the 2nd primary can continue to serve as a primary.                     
 
 ### 1) Build Image:                                                                                             
      * Build
