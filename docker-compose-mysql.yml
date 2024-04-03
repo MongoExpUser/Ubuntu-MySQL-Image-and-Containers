@@ -13,17 +13,17 @@
 # *                                                                                                                                     *
 # *  Project: Ubuntu-MySQL Image & Container Project                                                                                    *
 # *                                                                                                                                     *
-# *  This docker compose file deploys MySQL Source-Source-Replica Setup as follow:                                                      *
+# *  This docker compose file deploys MySQL Source-Source-Replica Setup and a Webserver as follows:                                     *
 # *                                                                                                                                     *                                                                                                              *
-# *     1)  MySQL Server -  2 Source Nodes - Source-Source or Primary-Primary or Master-Master                                          *
+# *     1)  MySQL Server -  2 Source Nodes - Source-Source or Primary-Primary or Master-Master (GTID  Replication Mode Option Enabled)  *
 # *                                                                                                                                     *
-# *     2)  MySQL Server  - 1 Replica  Node                                                                                             *
+# *     2)  MySQL Server  - 1 Replica  Node (GTID  Replication Mode Option Enabled)                                                     *
 # *                                                                                                                                     *
-# *     3)  GTID  Replication Mode Option Enabled                                                                                       *
+# *     3)  A NodeJS Webserver Node                                                                                                     *
 # *                                                                                                                                     *
-# *  Version: MySQL Version 8.0.36                                                                                                      *
+# *  Version: MySQL Version v8.0.36 and Node v21                                                                                        *
 # *                                                                                                                                     *
-# *  Images name: lsa/ubuntu-22.04-mysql-8.0.36:latest .                                                                                *
+# *  Images name: lsa/ubuntu-22.04-mysql-8.0.36:latest                                                                                  *
 # *                                                                                                                                     *
 # *  Purpose: Datastore for a Listing-and-Search (LSA) Application                                                                      *
 # *                                                                                                                                     *
