@@ -20,17 +20,17 @@
 
 ### 3) Deploy Containers and Destroy with Docker Compose:                                                                                             
      * Deploy containers 
-     set PWD=%cd% && sudo docker compose -f docker-compose-mysql-g.yml --project-directory $PWD --project-name "lsa-app" up -d
+     set PWD=%cd% && sudo docker compose -f docker-compose-mysql.yml --project-directory $PWD --project-name "lsa-app" up -d
      * Stop and remove containers with related network and volumes
-     set PWD=%cd% && sudo docker compose -f docker-compose-mysql-g.yml --project-directory $PWD --project-name "lsa-app" down && sudo docker volume rm $(docker volume ls -q)
+     set PWD=%cd% && sudo docker compose -f docker-compose-mysql.yml --project-directory $PWD --project-name "lsa-app" down && sudo docker volume rm $(docker volume ls -q)
 
 ### 4) Stop, Re-Start and Log Services with Docker Compose: 
      * Stop services
-     set PWD=%cd% && sudo docker compose -f docker-compose-mysql-g.yml --project-directory $PWD --project-name "lsa-app" stop
+     set PWD=%cd% && sudo docker compose -f docker-compose-mysql.yml --project-directory $PWD --project-name "lsa-app" stop
      * Start services
-     set PWD=%cd% && sudo docker compose -f docker-compose-mysql-g.yml --project-directory $PWD --project-name "lsa-app" start
+     set PWD=%cd% && sudo docker compose -f docker-compose-mysql.yml --project-directory $PWD --project-name "lsa-app" start
      * Log: view output from containers
-     set PWD=%cd% && sudo docker compose -f docker-compose-mysql-g.yml --project-directory $PWD --project-name "lsa-app" logs 
+     set PWD=%cd% && sudo docker compose -f docker-compose-mysql.yml --project-directory $PWD --project-name "lsa-app" logs 
 
 ### 5) Stop, Re-Start, and Check Status of, MySQL Services on the Nodes: 
      * Primary-Node-1 
