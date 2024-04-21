@@ -11,7 +11,7 @@
      
 ### 1) Build Image:                                                                                             
      * Build
-     sudo docker build --no-cache -t lsa/ubuntu-22.04-mysql-8.3.0:latest .
+     sudo docker build --no-cache -t lsea/ubuntu-22.04-mysql-server-and-mysql-shell-8.0.36 .
 
 ### 2) Edit the config settings in the docker compose file in the repository, as deem necessary:    
        Docker compose file name: docker-compose-mysql.yml
