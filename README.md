@@ -2,15 +2,13 @@
 # Ubuntu-MySQL-Image-and-Containers
 ## MySQL Primary-Primary-Replica Setup
 
-<strong> Create Image and Deploy Containers of MySQL Servers (2 Primary and 1 Replica) for a Listing and Searching Application (LSA) .</strong>
+<strong> Create Image and Deploy Containers of MySQL Servers (2 Primary and 1 Replica) for a Listing and Searching Application (LSEA) .</strong>
 <br>
 
 ### Architectural Diagram Depicting MySQL Primary-Primary and Replica Setup.
 ![Image description](https://github.com/MongoExpUser/Ubuntu-MySQL-Image-and-Containers/blob/main/mysql-arch.png)
 
-     *  Both primary (source) nodes can be used for write and read operations.                                      
-     *  If the main primary (source-1/primary-1) node goes down, the 2nd primary can continue to serve as a primary.                     
-
+     
 ### 1) Build Image:                                                                                             
      * Build
      sudo docker build --no-cache -t lsa/ubuntu-22.04-mysql-8.3.0:latest .
