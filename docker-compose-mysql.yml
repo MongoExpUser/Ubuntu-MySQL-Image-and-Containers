@@ -15,7 +15,7 @@
 # *                                                                                                                                     *
 # *  This docker compose file deploys MySQL Source-Source-Replica Setup and a Webserver as follows:                                     *
 # *                                                                                                                                     * 
-# *     1)  MySQL Server (SQL) and MySQL Shell (Document Store/NoSQL): Both integrated into  as single server.                          *
+# *     1)  MySQL Server (SQL) and MySQL Shell (Document Store/NoSQL): Both integrated into a single server.                            *
 # *         (a) 2 Source Nodes - Source-Source or Primary-Primary or Master-Master (With GTID  Replication Mode Option Enabled).        *                
 # *         (b) 1 Replica  Node - (With GTID  Replication Mode Option Enabled)                                                          *
 # *                                                                                                                                     *
