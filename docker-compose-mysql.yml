@@ -14,28 +14,29 @@
 # *  Project: Ubuntu-MySQL Image & Container Project                                                                                    *
 # *                                                                                                                                     *
 # *  This docker compose file deploys MySQL Source-Source-Replica Setup and a Webserver as follows:                                     *
-# *                                                                                                                                     *                                                                                                              *
-# *     1)  MySQL Server -  2 Source Nodes - Source-Source or Primary-Primary or Master-Master (GTID  Replication Mode Option Enabled)  *
+# *                                                                                                                                     * 
+# *     1)  MySQL Server (SQL) and MySQL Shell (Document Store/NoSQL): Both integrated into  as single server.                          *
+# *         (a) 2 Source Nodes - Source-Source or Primary-Primary or Master-Master (With GTID  Replication Mode Option Enabled).        *                
+# *         (b) 1 Replica  Node - (With GTID  Replication Mode Option Enabled)                                                          *
 # *                                                                                                                                     *
-# *     2)  MySQL Server  - 1 Replica  Node (GTID  Replication Mode Option Enabled)                                                     *
+# *     2)  A NodeJS Webserver Node                                                                                                     *
 # *                                                                                                                                     *
-# *     3)  A NodeJS Webserver Node                                                                                                     *
+# *  Version: MySQL Server v8.0.36, MySQL Shell v8.0.36, and NodeJS v21.                                                                *
 # *                                                                                                                                     *
-# *  Version: MySQL Version v8.0.36 and NodeJS v21                                                                                      *
+# *  Images name: lsea/ubuntu-22.04-mysql-server-and-mysql-shell-8.0.36                                                                 *
 # *                                                                                                                                     *
-# *  Images name: lsa/ubuntu-22.04-mysql-8.0.36:latest                                                                                  *
-# *                                                                                                                                     *
-# *  Purpose: Datastore for a Listing-and-Search (LSA) Application                                                                      *
+# *  Purpose: Datastore for a Listing-and-Search (LSEA) Application                                                                     *
 # *                                                                                                                                     *
 # *  Both primary (source) nodes can be used for write and read operations.                                                             *
 # *  If the main primary (source-1/primary-1) nodes goes down, the 2nd primary can continue to serve as a primary.                      *
 # ***************************************************************************************************************************************
 
 
-version: "3.9"
 services:
   primary-node-1:
-    image: lsa/ubuntu-22.04-mysql-8.0.36:latest
+    depends_on:
+      - app-node-4
+    image: lsea/ubuntu-22.04-mysql-server-and-mysql-shell-8.0.36
     environment:
       - REPLPASSWORD=${REPLPASSWORD}
       - DATADIR=${DATADIR}
@@ -45,7 +46,7 @@ services:
       && sudo chmod 750 /var/lib/mysql
       && sudo chmod 750 /var/log/mysql
       && sudo chown mysql /var/lib/mysql
-      && sudo chown -R mysql:mysql /etc/mysql/
+      && sudo chown -R mysql:mysql /etc/mysql
       && sudo chown -R mysql:mysql /var/lib/mysql
       && sudo chown -R mysql:mysql /var/log/mysql
       && sudo chmod 750 /var/log/mysql
@@ -88,7 +89,7 @@ services:
       && echo 'quote-names' >> /etc/mysql/my.cnf
       && echo 'max_allowed_packet=200M' >> /etc/mysql/my.cnf
       && sudo chmod 750 /etc/mysql/my.cnf
-      && sudo chown -R mysql /etc/mysql/
+      && sudo chown -R mysql:mysql /etc/mysql/
       && sudo service mysql start
       && sudo sleep 5
       && sudo mysql --execute \"use mysql; DROP USER IF EXISTS 'replicator'@'%'; FLUSH PRIVILEGES; \"
@@ -123,10 +124,14 @@ services:
     container_name: primary-node-1
     restart: always
     volumes:
-      - data_pid1:/var/lib/mysql
-      - logs1:/var/log/mysql
+      # ensure data volume is created on the docker host -> command: sudo docker create volume data_mysql_node_1 
+      # ensure logs volume is created on the docker host -> command: sudo docker create volume logs_mysql_node_1
+      - data_mysql_node_1:/var/lib/mysql
+      - logs_mysql_node_1:/var/log/mysql
+      - ./testdb-updated.sql:${FILENAME}
     ports:
       -  3301:3306
+      -  33010:33060
     extra_hosts:
       - host.docker.internal:host-gateway
     healthcheck:
@@ -137,7 +142,7 @@ services:
   primary-node-2:
     depends_on:
       - primary-node-1
-    image: lsa/ubuntu-22.04-mysql-8.0.36:latest
+    image: lsea/ubuntu-22.04-mysql-server-and-mysql-shell-8.0.36
     environment:
       - REPLPASSWORD=${REPLPASSWORD}
       - DATADIR=${DATADIR}
@@ -147,7 +152,7 @@ services:
       && sudo chmod 750 /var/lib/mysql
       && sudo chmod 750 /var/log/mysql
       && sudo chown mysql /var/lib/mysql
-      && sudo chown -R mysql:mysql /etc/mysql/
+      && sudo chown -R mysql:mysql /etc/mysql
       && sudo chown -R mysql:mysql /var/lib/mysql
       && sudo chown -R mysql:mysql /var/log/mysql
       && sudo chmod 750 /var/log/mysql
@@ -226,10 +231,13 @@ services:
     container_name: primary-node-2
     restart: always
     volumes:
-      - data_pid2:/var/lib/mysql
-      - logs2:/var/log/mysql
+      # ensure data volume is created on the docker host -> command: sudo docker create volume data_mysql_node_2
+      # ensure logs volume is created on the docker host -> command: sudo docker create volume logs_mysql_node_2
+      - data_mysql_node_2:/var/lib/mysql
+      - logs_mysql_node_2:/var/log/mysql
     ports:
       -  3302:3306
+      -  33020:33060
     extra_hosts:
       - host.docker.internal:host-gateway
     healthcheck:      
@@ -241,7 +249,7 @@ services:
     depends_on:
       - primary-node-1
       - primary-node-2
-    image: lsa/ubuntu-22.04-mysql-8.0.36:latest
+    image: lsea/ubuntu-22.04-mysql-server-and-mysql-shell-8.0.36
     environment:
       - REPLPASSWORD=${REPLPASSWORD}
       - DATADIR=${DATADIR}
@@ -251,7 +259,7 @@ services:
       && sudo chmod 750 /var/lib/mysql
       && sudo chmod 750 /var/log/mysql
       && sudo chown mysql /var/lib/mysql
-      && sudo chown -R mysql:mysql /etc/mysql/
+      && sudo chown -R mysql:mysql /etc/mysql
       && sudo chown -R mysql:mysql /var/lib/mysql
       && sudo chown -R mysql:mysql /var/log/mysql
       && sudo chmod 750 /var/log/mysql
@@ -333,10 +341,13 @@ services:
     container_name: replica-node-3
     restart: always
     volumes:
-      - data_pid3:/var/lib/mysql
-      - logs3:/var/log/mysql
+      # ensure data volume is created on the docker host -> command: sudo docker create volume data_mysql_node_3
+      # ensure logs volume is created on the docker host -> command: sudo docker create volume logs_mysql_node_3
+      - data_mysql_node_3:/var/lib/mysql
+      - logs_mysql_node_3:/var/log/mysql
     ports:
       -  3303:3306
+      -  33030:33060
     extra_hosts:
       - host.docker.internal:host-gateway
     healthcheck:
@@ -345,7 +356,7 @@ services:
       timeout: 3s
       retries: 3
   app-node-4:
-    image: lsa/ubuntu-22.04-mysql-8.0.36:latest
+    image: lsea/ubuntu-22.04-mysql-server-and-mysql-shell-8.0.36
     environment:
       - REPLPASSWORD=${REPLPASSWORD}
       - DATADIR=${DATADIR}
@@ -356,9 +367,18 @@ services:
       - ./app:/home/base
     ports:
       -  80:80
+      -  443:443
     extra_hosts:
       - host.docker.internal:host-gateway
     healthcheck:
       test: ["CMD-SHELL", "sudo ls -lhs /home/base && sudo curl http://localhost"]
       interval: 6s
- 
+      timeout: 3s
+      retries: 3
+volumes:
+  data_mysql_node_1:
+  logs_mysql_node_1:
+  data_mysql_node_2:
+  logs_mysql_node_2:
+  data_mysql_node_3:
+  logs_mysql_node_3:
