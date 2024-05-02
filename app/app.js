@@ -11,7 +11,7 @@
 #  * @License Ends                                                                                                                      *
 #  **************************************************************************************************************************************
 # *                                                                                                                                     *
-# *  Project: Ubuntu-Redis-Stack Image & Container Project                                                                              *
+# *  Project: Ubuntu-MySQL Image & Container Project                                                                                    *
 # *                                                                                                                                     *
 # *  This module deploys:                                                                                                               *
 # *                                                                                                                                     *                                                                                                              *
@@ -21,7 +21,7 @@
 # *                                                                                                                                     *
 # *     1) Add relevant middlewares.                                                                                                    *
 # *                                                                                                                                     *
-# *     2) Add NodeJS Weather Application route.                                                                                        *
+# *     2) Add NodeJS Listing and Seach route and other routes                                                                          *
 # *                                                                                                                                     *                                                                                                                                  *
 # *     3) Add relevant web server codes (.html, .css and .js codes).                                                                   *
 # *                                                                                                                                     *                                                                                                                             *
@@ -190,7 +190,7 @@ class AppVanilla
                         //createdMiddlewares.BasicAuthenticationVanilla(request, response);                   // basic authentication middleware: should come after "logger" middleware (optional)
 
                         // 3. routes
-                        //add more routes as deem necessary
+                        //add more routes as deem necessary e.g. Listing and Search Routes, etc.
                         // ..
                         // ..
                         //createdRoutes.ServeStaticFilesVanilla(get, request, response, staticFileOptions);   // static file server as routes: should come last
